@@ -1,32 +1,50 @@
 const cellConstructor = (context, pos, field) => {
-    const state = undefined;
+    let state = undefined;
     const getPos = () => pos;
-    const createCell = () => {
-        const cell = context.createElement("div");
-        let id = `${pos}`;
-        cell.setAttribute("id", id);
-        cell.classList.add("cell");
-        cell.addEventListener("click", function(e) {
-            const currsymbol = context.gameState.getCurrentPlayer().symbol;
-            e.target.innerHTML = currsymbol;
-            state = currsymbol;
-        })
-        field.appendChild(cell);
-    }
     const getState = () => state;
-    return {getPos, createCell, getState};
+    const setState = (symbol) => state = symbol;
+    const cell = context.createElement("div");
+    let id = `${pos}`;
+    cell.setAttribute("id", id);
+    cell.classList.add("cell");
+    cell.addEventListener("click", function(e) {
+        let currsymbol = gameState.getCurrentPlayer().getSymbol();
+        e.target.innerHTML = currsymbol;
+        state = currsymbol;
+        gameState.turnCounter += 1;
+    })
+    field.appendChild(cell);
+    return {getPos, getState, setState};
 }
 
 const playingField = ((context) => {
-    const setup = () => {
-        const field = context.createElement("div");
-        field.classList.add("field");
-        for (i=1; i<=9; i++) {
-            cellConstructor(context, i, field).createCell();
-        }
-        context.body.appendChild(field)
+    const field = context.createElement("div");
+    field.classList.add("field");
+    const cells = [];
+    for (i=1; i<=9; i++) {
+        cells.push(cellConstructor(context, i, field));
     }
-    return {setup};
-})(document);
+    context.body.appendChild(field)
+    return {field, cells};
+});
 
-playingField.setup()
+const playerConstructor = (name, symbol) => {
+    const getName = () => name;
+    const getSymbol = () => symbol;
+    return {getName, getSymbol}
+}
+
+const gameState = ((context) => {
+    let turnCounter = 0;
+    const field = playingField(context);
+    const players = [playerConstructor("Player 1", "X"), playerConstructor("Player 2", "O")]
+    const getCurrentPlayer = (iturn) => players[iturn % 2];
+    const startGameLoop = () => {
+        let iturn = 0;
+        while (iturn <= 9) {
+            getCurrentPlayer(iturn)
+        }
+    }
+    return {turnCounter, getCurrentPlayer, startGameLoop}
+})(document)
+gameState.startGameLoop();
