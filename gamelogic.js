@@ -6,15 +6,11 @@ const cellConstructor = (context, pos, field) => {
         let id = `${pos}`;
         cell.setAttribute("id", id);
         cell.classList.add("cell");
-        const button = context.createElement("button");
-        button.setAttribute("target", id);
-        button.addEventListener("click", function(e) {
+        cell.addEventListener("click", function(e) {
             const currsymbol = context.gameState.getCurrentPlayer().symbol;
-            const target = context.querySelector(`#${id}`);
-            target.innerHTML = currsymbol;
+            e.target.innerHTML = currsymbol;
             state = currsymbol;
         })
-        cell.appendChild(button);
         field.appendChild(cell);
     }
     const getState = () => state;
