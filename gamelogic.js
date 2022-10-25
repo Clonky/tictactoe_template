@@ -8,10 +8,9 @@ const cellConstructor = (context, pos, field) => {
     cell.setAttribute("id", id);
     cell.classList.add("cell");
     cell.addEventListener("click", function(e) {
-        let currsymbol = gameState.getCurrentPlayer().getSymbol();
-        e.target.innerHTML = currsymbol;
-        state = currsymbol;
+        e.target.innerHTML = gameState.getCurrentPlayer(gameState.turnCounter).getSymbol();
         gameState.turnCounter += 1;
+        e.target.removeEventListener(e.type, arguments.callee)
     })
     field.appendChild(cell);
     return {getPos, getState, setState};
@@ -37,14 +36,9 @@ const playerConstructor = (name, symbol) => {
 const gameState = ((context) => {
     let turnCounter = 0;
     const field = playingField(context);
-    const players = [playerConstructor("Player 1", "X"), playerConstructor("Player 2", "O")]
-    const getCurrentPlayer = (iturn) => players[iturn % 2];
-    const startGameLoop = () => {
-        let iturn = 0;
-        while (iturn <= 9) {
-            getCurrentPlayer(iturn)
-        }
-    }
+    const players = [playerConstructor("Player 1", "<span class='material-symbols-outlined'>close</span>"), playerConstructor("Player 2", "<span class='material-symbols-outlined'>circle</span>")]
+    const getCurrentPlayer = (turnCounter) => players[turnCounter % 2];
+    const startGameLoop = () => {}
     return {turnCounter, getCurrentPlayer, startGameLoop}
 })(document)
 gameState.startGameLoop();
