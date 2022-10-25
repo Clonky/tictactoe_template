@@ -1,9 +1,8 @@
 const cellConstructor = (context, pos, field) => {
     let state = undefined;
     const getPos = () => pos;
-    const getState = () => state;
-    const setState = (symbol) => state = symbol;
     const cell = context.createElement("div");
+    const getState = () => cell.innerHTML;
     let id = `${pos}`;
     cell.setAttribute("id", id);
     cell.classList.add("cell");
@@ -11,9 +10,10 @@ const cellConstructor = (context, pos, field) => {
         e.target.innerHTML = gameState.getCurrentPlayer(gameState.turnCounter).getSymbol();
         gameState.turnCounter += 1;
         e.target.removeEventListener(e.type, arguments.callee)
+        console.log(gameState.score());
     })
     field.appendChild(cell);
-    return {getPos, getState, setState};
+    return {getPos, getState};
 }
 
 const playingField = ((context) => {
@@ -24,7 +24,43 @@ const playingField = ((context) => {
         cells.push(cellConstructor(context, i, field));
     }
     context.body.appendChild(field)
-    return {field, cells};
+    const idToXY = (id) => {
+        let X = Math.floor(id / 3);
+        let Y = id % 3;
+        return {X, Y};
+    }
+    const XYtoID = function(X,Y)  {
+        id = X * 3 + Y;
+        return id;
+    }
+
+    const checkRow = (idx) => {
+        let row = [];
+        for (i=0; i<=2; i++) {
+            row.push(cells[XYtoID(idx, i)].getState());
+        }
+        isWinner = row.every(val => val === row[0] && val !== '');
+        return isWinner;
+    }
+
+    const checkCol = (idx) => {
+        let col = [];
+        for (i=0; i<=2; i++) {
+            col.push(cells[XYtoID(i, idx)].getState());
+        }
+        isWinner = col.every(val => val === col[0] && val !== '');
+        return isWinner;
+    }
+
+    const score = () => {
+        let results = [];
+        for (j=0; j<3; j++) {
+            results.push(checkCol(j));
+            results.push(checkRow(j));
+        }
+        return results.some(item => item);
+    }
+    return {field, cells, score};
 });
 
 const playerConstructor = (name, symbol) => {
@@ -39,6 +75,7 @@ const gameState = ((context) => {
     const players = [playerConstructor("Player 1", "<span class='material-symbols-outlined'>close</span>"), playerConstructor("Player 2", "<span class='material-symbols-outlined'>circle</span>")]
     const getCurrentPlayer = (turnCounter) => players[turnCounter % 2];
     const startGameLoop = () => {}
-    return {turnCounter, getCurrentPlayer, startGameLoop}
+    const score = () => field.score()
+    return {turnCounter, getCurrentPlayer, startGameLoop, score, field}
 })(document)
 gameState.startGameLoop();
