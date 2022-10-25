@@ -10,20 +10,20 @@ const cellConstructor = (context, pos, field) => {
         e.target.innerHTML = gameState.getCurrentPlayer(gameState.turnCounter).getSymbol();
         gameState.turnCounter += 1;
         e.target.removeEventListener(e.type, arguments.callee)
-        console.log(gameState.score());
     })
     field.appendChild(cell);
     return {getPos, getState};
 }
 
 const playingField = ((context) => {
+    const playingArea = context.querySelector(".playing-area");
     const field = context.createElement("div");
     field.classList.add("field");
     const cells = [];
     for (i=1; i<=9; i++) {
         cells.push(cellConstructor(context, i, field));
     }
-    context.body.appendChild(field)
+    playingArea.appendChild(field)
     const idToXY = (id) => {
         let X = Math.floor(id / 3);
         let Y = id % 3;
@@ -60,6 +60,10 @@ const playingField = ((context) => {
         }
         return results.some(item => item);
     }
+
+    const reset = () => {
+        
+    }
     return {field, cells, score};
 });
 
@@ -71,11 +75,17 @@ const playerConstructor = (name, symbol) => {
 
 const gameState = ((context) => {
     let turnCounter = 0;
-    const field = playingField(context);
+    let field = playingField(context);
     const players = [playerConstructor("Player 1", "<span class='material-symbols-outlined'>close</span>"), playerConstructor("Player 2", "<span class='material-symbols-outlined'>circle</span>")]
     const getCurrentPlayer = (turnCounter) => players[turnCounter % 2];
     const startGameLoop = () => {}
     const score = () => field.score()
-    return {turnCounter, getCurrentPlayer, startGameLoop, score, field}
+    const reset = () => {
+        delete field;
+        field = playingField(context);
+    }
+    return {turnCounter, getCurrentPlayer, startGameLoop, score, reset}
 })(document)
-gameState.startGameLoop();
+
+const resetButton = document.querySelector("#reset");
+resetButton.addEventListener("click", gameState.reset);
