@@ -1,18 +1,25 @@
+const P1SYMBOL = "<span class='material-symbols-outlined'>close</span>";
+const P2SYMBOL = "<span class='material-symbols-outlined'>circle</span>";
+
+
 const cellConstructor = (context, pos, field) => {
-    let state = undefined;
     const getPos = () => pos;
     const cell = context.createElement("div");
     const getState = () => cell.innerHTML;
+    const setCell = (e) => {
+        e.target.innerHTML = gameState.getCurrentPlayer(gameState.turnCounter).getSymbol();
+        gameState.turnCounter += 1;
+        gameState.score(gameState.turnCounter);
+    }
+    cell.addEventListener("click", setCell, {once: true});
+    const disable = () => {
+        cell.removeEventListener("click", setCell);
+    }
     let id = `${pos}`;
     cell.setAttribute("id", id);
     cell.classList.add("cell");
-    cell.addEventListener("click", function(e) {
-        e.target.innerHTML = gameState.getCurrentPlayer(gameState.turnCounter).getSymbol();
-        gameState.turnCounter += 1;
-        e.target.removeEventListener(e.type, arguments.callee)
-    })
     field.appendChild(cell);
-    return {getPos, getState};
+    return {getPos, getState, disable};
 }
 
 const playingField = ((context) => {
@@ -24,11 +31,13 @@ const playingField = ((context) => {
         cells.push(cellConstructor(context, i, field));
     }
     playingArea.appendChild(field)
+
     const idToXY = (id) => {
         let X = Math.floor(id / 3);
         let Y = id % 3;
         return {X, Y};
     }
+
     const XYtoID = function(X,Y)  {
         id = X * 3 + Y;
         return id;
@@ -61,10 +70,14 @@ const playingField = ((context) => {
         return results.some(item => item);
     }
 
-    const reset = () => {
-        
+    const disable = () => {
+        cells.forEach((icell) => icell.disable());
     }
-    return {field, cells, score};
+
+    const reset = () => {
+        field.remove();
+    }
+    return {field, cells, score, reset, disable};
 });
 
 const playerConstructor = (name, symbol) => {
@@ -73,19 +86,43 @@ const playerConstructor = (name, symbol) => {
     return {getName, getSymbol}
 }
 
-const gameState = ((context) => {
+let gameState = ((context) => {
     let turnCounter = 0;
     let field = playingField(context);
-    const players = [playerConstructor("Player 1", "<span class='material-symbols-outlined'>close</span>"), playerConstructor("Player 2", "<span class='material-symbols-outlined'>circle</span>")]
+    const players = [playerConstructor("Player 1", P1SYMBOL), playerConstructor("Player 2", P2SYMBOL)];
     const getCurrentPlayer = (turnCounter) => players[turnCounter % 2];
     const startGameLoop = () => {}
-    const score = () => field.score()
-    const reset = () => {
-        delete field;
+    const announceVictor = (turnCounter) => {
+        const victoryContent = context.querySelector(".right");
+        const victoryContentText = context.createElement("div");
+        victoryContentText.innerHTML = `${players[(turnCounter - 1) % 2].getName()} has won this Game.<br>Click Reset to play again.<br> Thanks for playing!`;
+        victoryContent.appendChild(victoryContentText);
+    }
+    const score = (turnCounter) => {
+        if (field.score()) {
+            field.disable();
+            announceVictor(turnCounter);
+        }
+    }
+    const reset = (turnCounter) => {
+        field.field.remove();
         field = playingField(context);
+        let victoryArea = context.querySelector(".right");
+        victoryArea.removeChild(victoryArea.lastChild);
+        turnCounter = 0;
     }
     return {turnCounter, getCurrentPlayer, startGameLoop, score, reset}
-})(document)
+})(document);
 
 const resetButton = document.querySelector("#reset");
-resetButton.addEventListener("click", gameState.reset);
+resetButton.addEventListener("click", function(e)  {
+    gameState.reset(gameState.turnCounter);
+});
+
+const printInstructions = (() => {
+    const instructionPane = document.querySelector(".instructions");
+    const playerSymbols = document.createElement("li");
+    playerSymbols.classList.add("player-legend")
+    playerSymbols.innerHTML = `Player 1: ${P1SYMBOL}; Player 2: ${P2SYMBOL}`;
+    instructionPane.appendChild(playerSymbols);
+})()

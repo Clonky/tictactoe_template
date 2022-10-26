@@ -16,14 +16,21 @@ aside {
     box-sizing: border-box;
 }
 
+
+.right {
+    justify-content: center;
+    align-items: center;
+    line-height: 2rem;
+}
+
 ul {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     list-style: none;
-    font-size: 1.2rem;
-    line-height: 2.5rem;
+    font-size: 1.1rem;
+    line-height: 2.0rem;
 }
 
 footer {
